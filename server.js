@@ -19,6 +19,7 @@ let tasks = [
 // ROUTES
 //connecting to mongoDB
 // Use Atlas URI or fallback to local
+console.log('MONGODB_URI:', process.env.MONGODB_URI ? 'SET' : 'NOT SET');
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskmanager';
 
 mongoose.connect(uri).then(() =>{
