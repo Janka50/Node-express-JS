@@ -16,15 +16,12 @@ let tasks = [
   { id: 2, title: 'learn node.js', completed: true }
 ];
 
-// === ROUTES ===
+// ROUTES
 //connecting to mongoDB
 // Use Atlas URI or fallback to local
 const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/taskmanager';
 
-mongoose.connect(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() =>{
+mongoose.connect(uri).then(() =>{
   console.log(chalk.blue('mongo DB connected successfully'))}).catch((err) =>{
     console.log(chalk.red('error connecting to mongo DB', err))});
 
