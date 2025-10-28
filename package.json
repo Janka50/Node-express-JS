@@ -2,15 +2,19 @@
   "name": "nodetrials",
   "version": "1.0.0",
   "description": "",
-  "main": "fetchUser.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node logger.js"
+    "start": "node server.js",
+    "server": "node  server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "moments": "^0.0.2"
+    "chalk": "^4.1.2",
+    "express": "^5.1.0",
+    "moment": "^2.30.1",
+    "mongoose": "^8.19.2"
   }
 }

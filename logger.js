@@ -1,25 +1,35 @@
+// logger.js - FINAL VERSION
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const moment = require ('moment');
-const { timeStamp } = require('console');
+const moment = require('moment');
 
-const filepath=path.join(__dirname, 'data.txt');
+const filepath = path.join(__dirname, 'data.txt');
 
-fs.readFile(filepath,'utf-8', (err , data ) => {
-    if (err) {
-        console.error(chalk.red('error reading file:'), err.message)
-        return ;
-    }
-    console.log(chalk.blue('current file content \n') , data);
-
-const timeStamp = moment().format ('YYYY-MM-DD, HH-mm-ss');
-const logEntry =`Updated at \n: ${timeStamp}`;
-
-fs.appendFile(filepath, logEntry, (err) => {
-    if (err) {
-        console.error(chalk.red('Error appending to file \n:'), err.message);
-    }
-    console.log(chalk.green(`File appended Successsfully at ${timeStamp} \n:`));
+fs.access(filepath, fs.constants.F_OK, (err) => {
+  if (err) {
+    fs.writeFile(filepath, 'Initial content\n2', (err) => {
+      if (err) return console.error(chalk.red('Failed to create file:', err.message));
+      console.log(chalk.yellow('Created data.txt'));
+      readAndLog();
+    });
+  } else {
+    readAndLog();
+  }
 });
-});
+
+function readAndLog() {
+  fs.readFile(filepath, 'utf-8', (err, data) => {
+    if (err) return console.error(chalk.red('Error reading file:', err.message));
+
+    console.log(chalk.blue('Current file content:\n'), data);
+
+    const timestamp = moment().format('YYYY-MM-DD, HH:mm:ss');
+    const logEntry = `Updated at: ${timestamp}\n`;
+
+    fs.appendFile(filepath, logEntry, (err) => {
+      if (err) return console.error(chalk.red('Error appending:', err.message));
+      console.log(chalk.green(`File appended successfully at ${timestamp}`));
+    });
+  });
+}
