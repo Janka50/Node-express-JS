@@ -37,7 +37,7 @@ app.get('/', (req, res) => {
 // GET all tasks
 app.get('/api/tasks',async (req, res) => {
   try{
-    const tasks = await task.find();
+    const tasks = await task.find().lean();
     res.json({
     status: 'success',
     count: tasks.length,
@@ -56,7 +56,7 @@ app.get('/api/tasks',async (req, res) => {
 app.get('/api/tasks/:id', async(req , res ) =>{
 
   try{
-  const task =await task.findById(req.params.id);
+  const task =await task.findById(req.params.id).lean();
   if (!task) {
     return res.status(404).json({
       status:'error',
@@ -107,7 +107,7 @@ app.post('/api/tasks',async (req, res) => {
 // DELETE task by ID
 app.delete('/api/tasks/:id', async(req, res) => {
   try{
-  const deletedTask = await task.findByIdAndDelete(req.params.id);
+  const deletedTask = await task.findByIdAndDelete(req.params.id).lean();
 
   if (!deletedTask) {
     return res.status(404).json({
