@@ -71,6 +71,7 @@ app.get('/api/tasks/:id', async(req , res ) =>{
       timestamp:moment().format('YYYY-MM-DD,HH:mm:ss')
     });
   }catch(error){
+    console.error('GET /:id ERROR:', error.message);
     res.status(500).json({
       status:'error',
       message:'Invalid server ID'
@@ -124,9 +125,11 @@ app.delete('/api/tasks/:id', async(req, res) => {
 }
 catch(error){
   res.status(500).json({
+  
     status:'error',
     message:'could not delete task '
-  })
+  });
+  console.error('DELETE /:id ERROR:', error.message);
 }
 });
 
