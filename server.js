@@ -53,28 +53,36 @@ app.get('/api/tasks',async (req, res) => {
 }
 });
 //get individual tasks
-app.get('/api/tasks/:id', async(req , res ) =>{
+app.get('/api/tasks/:id', async (req, res) => {
+  const { id } = req.params;
 
-  try{
-  const task =await task.findById(req.params.id).lean();
-  if (!task) {
-    return res.status(404).json({
-      status:'error',
-      message:'task not found'
-
+  // 1. Validate ID format
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      status: 'error',
+      message: 'Invalid task ID format'
     });
   }
-  
-    res.json({ 
-      status:'success',
-      data:task,
-      timestamp:moment().format('YYYY-MM-DD,HH:mm:ss')
+
+  try {
+    const taskItem = await task.findById(id).lean();
+    if (!taskItem) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'task not found'
+      });
+    }
+
+    res.json({
+      status: 'success',
+      data: taskItem,
+      timestamp: moment().format('YYYY-MM-DD, HH:mm:ss')
     });
-  }catch(error){
-    console.error('GET /:id ERROR:', error.message);
+  } catch (error) {
+    console.error('GET /:id error:', error.message);
     res.status(500).json({
-      status:'error',
-      message:'Invalid server ID'
+      status: 'error',
+      message: 'Server error'
     });
   }
 });
@@ -106,33 +114,40 @@ app.post('/api/tasks',async (req, res) => {
 });
 
 // DELETE task by ID
-app.delete('/api/tasks/:id', async(req, res) => {
-  try{
-  const deletedTask = await task.findByIdAndDelete(req.params.id).lean();
+app.delete('/api/tasks/:id', async (req, res) => {
+  const { id } = req.params;
 
-  if (!deletedTask) {
-    return res.status(404).json({
+  // 1. Validate ID
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
       status: 'error',
-      message: 'task not found'
+      message: 'Invalid task ID format'
     });
   }
-  res.json({
-    status: 'success',
-    data: deletedTask,
-    message: 'task deleted successfully',
-    timestamp: moment().format('YYYY-MM-DD, HH:mm:ss')
-  });
-}
-catch(error){
-  res.status(500).json({
-  
-    status:'error',
-    message:'could not delete task '
-  });
-  console.error('DELETE /:id ERROR:', error.message);
-}
-});
 
+  try {
+    const deletedTask = await task.findByIdAndDelete(id).lean();
+    if (!deletedTask) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'task not found'
+      });
+    }
+
+    res.json({
+      status: 'success',
+      data: deletedTask,
+      message: 'task deleted successfully',
+      timestamp: moment().format('YYYY-MM-DD, HH:mm:ss')
+    });
+  } catch (error) {
+    console.error('DELETE /:id error:', error.message);
+    res.status(500).json({
+      status: 'error',
+      message: 'could not delete task'
+    });
+  }
+});
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({
