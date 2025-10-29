@@ -5,16 +5,10 @@ const mongoose= require('mongoose');
 const task = require('./models/task');
 
 const app = express();
-const PORT = 3000;
+const PORT =  process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
-
-// In-memory storage
-let tasks = [
-  { id: 1, title: 'build an api', completed: false },
-  { id: 2, title: 'learn node.js', completed: true }
-];
 
 // ROUTES
 //connecting to mongoDB
@@ -30,7 +24,7 @@ mongoose.connect(uri).then(() =>{
 // Home
 app.get('/', (req, res) => {
   res.send(`
-    <h1>Welcome to my task manager!(Mongo DB)</h1>
+    <h1>Welcome to my task manager! (MongoDB)</h1>
     <p>Time: ${moment().format('YYYY-MM-DD, HH:mm:ss')}</p>
     <a href="/api/tasks">Check tasks</a>
     <ul>
@@ -41,32 +35,47 @@ app.get('/', (req, res) => {
 });
 
 // GET all tasks
-app.get('/api/tasks/',async (req, res) => {
-  res.json({
+app.get('/api/tasks',async (req, res) => {
+  try{
+    const tasks = await task.find();
+    res.json({
     status: 'success',
     count: tasks.length,
     data: tasks,
     timestamp: moment().format('YYYY-MM-DD, HH:mm:ss')
     // Removed extra message
   });
+}catch(err){
+  res.status(500).json({
+    status:'error',
+    message:'can not fetch task..'
+  })
+}
 });
 //get individual tasks
 app.get('/api/tasks/:id', async(req , res ) =>{
-  const id =parseInt(req.params.id);
-  const task =await task.find(t=> t.id ==id);
+
+  try{
+  const task =await task.findById(req.params.id);
   if (!task) {
-    return res.status(400).json({
+    return res.status(404).json({
       status:'error',
       message:'task not found'
 
     });
-   
   }
+  
     res.json({ 
       status:'success',
       data:task,
       timestamp:moment().format('YYYY-MM-DD,HH:mm:ss')
     });
+  }catch(error){
+    res.status(500).json({
+      status:'error',
+      message:'Invalid server ID'
+    });
+  }
 });
 
 // POST new task
@@ -97,24 +106,28 @@ app.post('/api/tasks',async (req, res) => {
 
 // DELETE task by ID
 app.delete('/api/tasks/:id', async(req, res) => {
-  const id = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === id);
+  try{
+  const deletedTask = await task.findByIdAndDelete(req.params.id);
 
-  if (taskIndex === -1) {
+  if (!deletedTask) {
     return res.status(404).json({
       status: 'error',
       message: 'task not found'
     });
   }
-
-  const deletedTask = tasks.splice(taskIndex, 1)[0];
-
   res.json({
     status: 'success',
     data: deletedTask,
     message: 'task deleted successfully',
     timestamp: moment().format('YYYY-MM-DD, HH:mm:ss')
   });
+}
+catch(error){
+  res.status(500).json({
+    status:'error',
+    message:'could not delete task '
+  })
+}
 });
 
 // Health check

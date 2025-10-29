@@ -3,7 +3,8 @@ const taskSchema= new mongoose.Schema({
     title :{
     type: String ,
     required : true,
-    minlength: 1
+    minlength: 1,
+    trim:true
 },
     completed :{
         type:Boolean,
