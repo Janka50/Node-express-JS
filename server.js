@@ -2,7 +2,7 @@ const express = require('express');
 const chalk = require('chalk');
 const moment = require('moment');
 const mongoose= require('mongoose');
-const task = require ('./models/task')
+const task = require('./models/task');
 
 const app = express();
 const PORT = 3000;
@@ -72,19 +72,29 @@ app.get('/api/tasks/:id', async(req , res ) =>{
 // POST new task
 app.post('/api/tasks',async (req, res) => {
   const { title } = req.body;
-  if (!title) {
+  
+  if(!title || title.trim() === '') {
     return res.status(400).json({
       status: 'error',
       message: 'title is required'
     });
   }
-
-  const newTask = await task.create({title});
-  return res.status(201).json({
+   
+  try{
+    const newTask = await task.create({title});
+   res.status(201).json({
     status:'success',
-    data: task
-  });
+    data: newTask
+  })
+  } catch (error){
+    console.error('POST /api/tasks error:', error); // Log for debugging
+      res.status(500).json({
+      status:'error',
+      message:'server error'
+    })
+  }
 });
+
 // DELETE task by ID
 app.delete('/api/tasks/:id', async(req, res) => {
   const id = parseInt(req.params.id);

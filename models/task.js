@@ -2,7 +2,8 @@ const mongoose=require('mongoose');
 const taskSchema= new mongoose.Schema({
     title :{
     type: String ,
-    required : true
+    required : true,
+    minlength: 1
 },
     completed :{
         type:Boolean,
@@ -11,4 +12,5 @@ const taskSchema= new mongoose.Schema({
     }
 
 });
-module.exports= mongoose.model('task',taskSchema);
+const task = mongoose.model('task',taskSchema);
+module.exports= task;
