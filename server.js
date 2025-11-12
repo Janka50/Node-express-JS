@@ -3,9 +3,13 @@ const chalk = require('chalk');
 const moment = require('moment');
 const mongoose= require('mongoose');
 const task = require('./models/task');
+const jwt = require('jsonwebtoken');
+const User = require('./models/user');
+const dotenv = require('dotenv').config();
 
 const app = express();
 const PORT =  process.env.PORT || 3000;
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 // Middleware
 app.use(express.json());
@@ -20,6 +24,99 @@ mongoose.connect(uri).then(() =>{
   console.log(chalk.blue('mongo DB connected successfully'))}).catch((err) =>{
     console.log(chalk.red('error connecting to mongo DB', err))});
 
+// Registration end point .
+app.post('api/auth/register', async (req,res) =>{
+  const { username, email, password} = req.body;
+  if(!username|| email || password ){
+    return res.status(400).json({
+      status:'error',
+      message:'all fields are required'
+    });
+  }
+  
+  try{
+      const existingUser = await User.findOne({$or: [{username},{email}]});
+      if (existingUser){
+        return res.status(400).json({
+          status:'error',
+          message:'Username or email already in use'
+        });
+      }
+    
+    const user= user.create({username, email, password});
+    const token = jwt.sign({id: user._id}, 'JWT_SECRET_KEY', {expireIn : '1h'});
+    res.status(201).json({
+      status:'success',
+      data:{
+        user:{
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          token
+        }
+      }
+    });
+  } catch (error){
+    res.status(500).json({
+      status:'error',
+      message:'Server error'
+    })
+  }
+});
+
+//login
+app.post('api/auth/login', async (req, res) =>{
+  const {email , password} = req.body;
+  if(!email || !password){
+    return res.status(400).json({
+      status:'error',
+      message:'email and password are required'
+    });
+  }
+  try{ 
+    const user = await User.findOne({email}).select('+password');
+    if (!user || ! await user.comparePassword(password)){
+      return res.status(400).json({
+        status: 'error',
+        message:'invalid credentials' 
+      });
+    }
+    const token = jwt.sign({id: user._id}, 'JWT_SECRET_KEY', {expiresIn: '1h'});
+    res.status(200).json({
+      status: 'success',
+      data : {user : {user_id : user._id, username: user.username, email: user.email} ,token}
+    });
+    }catch(error){
+      res.status(500).json({
+        status:'error',
+        message: 'Server error'
+      });
+    }
+
+  });
+  const authMiddleware = async (req, res, next) =>{
+  const token = req.header('Authorization')?.replace('Bearer','');
+  if (!token){ 
+    return res.status(401).json({
+      status:'error',
+      message:'no token provided'
+    });
+  }
+  try{
+    const decoded = jwt.verify(token, 'JWT_SECRET_KEY');
+    req.user = decoded;
+    next();
+
+
+  }catch (error){
+    res.status(401).json({
+      status:'error',
+      message:'invalid token'
+    });
+  }
+  };
+
+app.use('api/tasks', authMiddleware);
 
 // Home
 app.get('/', (req, res) => {
